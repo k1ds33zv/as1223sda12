@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart'; 
 import 'verification_screen.dart';
 
 class RegisterScreen extends StatefulWidget {
@@ -18,6 +18,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final List<String> _countryCodes = ['+7', '+1', '+44', '+49', '+33', '+86'];
   
   bool _formTouched = false;
+  bool _showPassword = false;
+  bool _showConfirmPassword = false;
 
   String? _validateEmail(String? value) {
     if (!_formTouched) return null;
@@ -85,6 +87,18 @@ class _RegisterScreenState extends State<RegisterScreen> {
         _validatePhone(_phoneController.text) == null;
   }
 
+  // Проверяем совпадение паролей в реальном времени
+  bool get _passwordsMatch {
+    return _passwordController.text == _confirmPasswordController.text;
+  }
+
+  // Проверяем, нужно ли подсвечивать поля паролей красным
+  bool get _shouldHighlightPasswords {
+    return _formTouched && 
+        (_passwordController.text.isNotEmpty || _confirmPasswordController.text.isNotEmpty) &&
+        !_passwordsMatch;
+  }
+
   void _handleRegisterPressed(BuildContext context) {
     setState(() {
       _formTouched = true;
@@ -105,6 +119,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final emailError = _validateEmail(_emailController.text);
+    final passwordError = _validatePassword(_passwordController.text);
+    final confirmPasswordError = _validateConfirmPassword(_confirmPasswordController.text);
+    final phoneError = _validatePhone(_phoneController.text);
+    final highlightPasswords = _shouldHighlightPasswords;
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -139,18 +159,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
             ),
             const SizedBox(height: 32),
 
+            // Email
             TextFormField(
               controller: _emailController,
               decoration: InputDecoration(
                 labelText: 'Email',
-                labelStyle: const TextStyle(color: Colors.black54),
+                labelStyle: TextStyle(color: emailError != null ? Colors.red : Colors.black54),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: Colors.black54),
+                  borderSide: BorderSide(color: emailError != null ? Colors.red : Colors.black54),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: Colors.black),
+                  borderSide: BorderSide(color: emailError != null ? Colors.red : Colors.black),
                 ),
                 contentPadding: const EdgeInsets.symmetric(
                   horizontal: 16,
@@ -161,56 +182,109 @@ class _RegisterScreenState extends State<RegisterScreen> {
               style: const TextStyle(fontSize: 16),
               onChanged: (_) => setState(() {}),
             ),
+            if (emailError != null) ...[
+              const SizedBox(height: 4),
+              Text(
+                emailError!,
+                style: const TextStyle(color: Colors.red, fontSize: 12),
+              ),
+            ],
             const SizedBox(height: 16),
 
+            // Пароль с глазком
             TextFormField(
               controller: _passwordController,
               decoration: InputDecoration(
                 labelText: 'Пароль',
-                labelStyle: const TextStyle(color: Colors.black54),
+                labelStyle: TextStyle(color: passwordError != null || highlightPasswords ? Colors.red : Colors.black54),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: Colors.black54),
+                  borderSide: BorderSide(color: passwordError != null || highlightPasswords ? Colors.red : Colors.black54),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: Colors.black),
+                  borderSide: BorderSide(color: passwordError != null || highlightPasswords ? Colors.red : Colors.black),
                 ),
                 contentPadding: const EdgeInsets.symmetric(
                   horizontal: 16,
                   vertical: 16,
                 ),
+                suffixIcon: IconButton(
+                  icon: Icon(
+                    _showPassword ? Icons.visibility : Icons.visibility_off,
+                    color: Colors.black54,
+                  ),
+                  onPressed: () {
+                    setState(() {
+                      _showPassword = !_showPassword;
+                    });
+                  },
+                ),
               ),
-              obscureText: true,
+              obscureText: !_showPassword,
               style: const TextStyle(fontSize: 16),
               onChanged: (_) => setState(() {}),
             ),
+            if (passwordError != null) ...[
+              const SizedBox(height: 4),
+              Text(
+                passwordError!,
+                style: const TextStyle(color: Colors.red, fontSize: 12),
+              ),
+            ],
             const SizedBox(height: 16),
 
+            // Подтверждение пароля с глазком
             TextFormField(
               controller: _confirmPasswordController,
               decoration: InputDecoration(
                 labelText: 'Подтвердите пароль',
-                labelStyle: const TextStyle(color: Colors.black54),
+                labelStyle: TextStyle(color: confirmPasswordError != null || highlightPasswords ? Colors.red : Colors.black54),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: Colors.black54),
+                  borderSide: BorderSide(color: confirmPasswordError != null || highlightPasswords ? Colors.red : Colors.black54),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: Colors.black),
+                  borderSide: BorderSide(color: confirmPasswordError != null || highlightPasswords ? Colors.red : Colors.black),
                 ),
                 contentPadding: const EdgeInsets.symmetric(
                   horizontal: 16,
                   vertical: 16,
                 ),
+                suffixIcon: IconButton(
+                  icon: Icon(
+                    _showConfirmPassword ? Icons.visibility : Icons.visibility_off,
+                    color: Colors.black54,
+                  ),
+                  onPressed: () {
+                    setState(() {
+                      _showConfirmPassword = !_showConfirmPassword;
+                    });
+                  },
+                ),
               ),
-              obscureText: true,
+              obscureText: !_showConfirmPassword,
               style: const TextStyle(fontSize: 16),
               onChanged: (_) => setState(() {}),
             ),
+            if (confirmPasswordError != null) ...[
+              const SizedBox(height: 4),
+              Text(
+                confirmPasswordError!,
+                style: const TextStyle(color: Colors.red, fontSize: 12),
+              ),
+            ],
+            if (highlightPasswords) ...[
+              const SizedBox(height: 4),
+              const Text(
+                'Пароли не совпадают',
+                style: TextStyle(color: Colors.red, fontSize: 12),
+              ),
+            ],
             const SizedBox(height: 16),
 
+            // Номер телефона
             const Align(
               alignment: Alignment.centerLeft,
               child: Text(
@@ -226,11 +300,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
             Row(
               children: [
+                // Выбор кода страны
                 Container(
                   height: 56,
                   width: 100,
                   decoration: BoxDecoration(
-                    border: Border.all(color: Colors.black54),
+                    border: Border.all(color: phoneError != null ? Colors.red : Colors.black54),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: DropdownButtonHideUnderline(
@@ -244,7 +319,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             padding: const EdgeInsets.symmetric(horizontal: 12),
                             child: Text(
                               value,
-                              style: const TextStyle(fontSize: 16),
+                              style: TextStyle(
+                                fontSize: 16,
+                                color: phoneError != null ? Colors.red : Colors.black,
+                              ),
                             ),
                           ),
                         );
@@ -259,19 +337,20 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 ),
                 const SizedBox(width: 12),
                 
+                // Поле ввода номера
                 Expanded(
                   child: TextFormField(
                     controller: _phoneController,
                     decoration: InputDecoration(
                       hintText: '960 852 2112',
-                      hintStyle: const TextStyle(color: Colors.black38),
+                      hintStyle: TextStyle(color: phoneError != null ? Colors.red : Colors.black38),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(color: Colors.black54),
+                        borderSide: BorderSide(color: phoneError != null ? Colors.red : Colors.black54),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(color: Colors.black),
+                        borderSide: BorderSide(color: phoneError != null ? Colors.red : Colors.black),
                       ),
                       contentPadding: const EdgeInsets.symmetric(
                         horizontal: 16,
@@ -279,14 +358,25 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       ),
                     ),
                     keyboardType: TextInputType.phone,
-                    style: const TextStyle(fontSize: 16),
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: phoneError != null ? Colors.red : Colors.black,
+                    ),
                     onChanged: (_) => setState(() {}),
                   ),
                 ),
               ],
             ),
+            if (phoneError != null) ...[
+              const SizedBox(height: 4),
+              Text(
+                phoneError!,
+                style: const TextStyle(color: Colors.red, fontSize: 12),
+              ),
+            ],
             const SizedBox(height: 32),
 
+            // Кнопка
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
